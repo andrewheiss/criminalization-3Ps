@@ -2,7 +2,7 @@ name: "criminalization-3Ps"
 exclude: ["data", "misc", "Makefile", "LICENSE"]
 navbar:
   title: "Criminalization and the 3Ps"
-  left:
+  right:
     - text: "Data cleaning"
       icon: fa-table
       href: clean_data.html
