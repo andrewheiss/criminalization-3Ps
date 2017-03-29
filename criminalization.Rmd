@@ -6,6 +6,7 @@ date: "`r format(Sys.time(), '%F')`"
 TODO: 
 
 - Does criminalization mean just paper compliance or is there something there?
+- Partial vs. full criminalization
 - Figure 6.8 from the book - look at two of the three Ps (not prosecution) as DVs in Cho’s models
 - Also code if countries have an action plan or not - that might matter too - control for US effort (not the TIP score, but other measures of aid, like Wikileaks, USAID, number of trafficking NGOs in the country, etc.)
 
