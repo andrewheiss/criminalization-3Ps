@@ -1,0 +1,26 @@
+name: "criminalization-3Ps"
+exclude: ["data", "misc", "Makefile"]
+navbar:
+  title: "Criminalization and the 3Ps"
+  left:
+    - text: "Data cleaning"
+      icon: fa-table
+      href: clean_data.html
+    - text: "Replication"
+      icon: fa-clone
+      href: replication.html
+    - text: "Effect of criminalization"
+      icon: fa-bar-chart
+      href: criminalization.html
+output:
+  html_document:
+    theme: yeti
+    highlight: pygments
+    code_folding: hide
+    toc: yes
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+    toc_depth: 4
+    fig_height: 4
+    fig_width: 6

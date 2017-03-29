@@ -1,0 +1,12 @@
+# R stuff
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+# R Markdown website stuff
+_site/*
+
+# Other stuff
+data/*
+misc/*
