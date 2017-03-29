@@ -1,5 +1,5 @@
 name: "criminalization-3Ps"
-exclude: ["data", "misc", "Makefile"]
+exclude: ["data", "misc", "Makefile", "LICENSE"]
 navbar:
   title: "Criminalization and the 3Ps"
   left:
