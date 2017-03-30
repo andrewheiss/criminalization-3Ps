@@ -97,7 +97,7 @@ corruption <- wgi.raw %>%
 ```
 
 
-### Polity
+### Democracy
 
 We use democracy data from [Polity IV](http://www.systemicpeace.org/inscrdata.html).
 
@@ -116,7 +116,7 @@ Dozens of countries don't correspond to COW codes here, mostly becuase the data 
 
 I'm super curious to know what the original authors did with this data, too. 72% is missing!
 
-```{r load-wb-gender, message=FALSE, cache=TRUE}
+```{r load-wb-gender, message=FALSE, warning=FALSE, cache=TRUE}
 gender.raw <- read_csv("data/WB gender stats/Gender_Stat_Data.csv") 
 
 gender <- gender.raw %>%
@@ -130,7 +130,7 @@ gender <- gender.raw %>%
 ```
 
 
-### CIRI
+### Women's economic rights
 
 We use data on women's economic rights from [CIRI](http://www.humanrightsdata.com/).
 
@@ -142,7 +142,7 @@ ciri.raw <- read_csv("data/CIRI/CIRI Data 1981_2011 2014.04.14.csv",
 ```
 
 
-### World Bank
+### GDP per capita
 
 We use GDP per capita data (constant 2010 USD) from the [World Bank](http://data.worldbank.org/).
 
@@ -165,7 +165,6 @@ wdi.clean.intermediate <- wdi.raw %>%
   rename(gdp.capita.2010 = NY.GDP.PCAP.KD, gdp.2010 = NY.GDP.MKTP.KD, 
          gdp.current = NY.GDP.MKTP.CD, population = SP.POP.TOTL)
 ```
-
 
 
 ## Combine data
