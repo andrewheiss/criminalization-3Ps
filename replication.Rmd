@@ -22,13 +22,13 @@ Replication of Seo-Young Cho, Axel Dreher, and Eric Neumayer. 2014. "Determinant
 - Country and year fixed effects
 - Ordered probit, OLS, and system GMM models
 - Variables:
-  - Control of corruption (Kaufmann 2009), ranges from -1.63 (high corruption) to 2.58 (low corruption)
-  - Lagged Polity
-  - Women legislators (percent) - World Bank Gender Statistics database
-  - Women economic rights - CIRI
-  - International regime membership - binary indicator for Palermo protocol ratification
-  - Log GDP/capita - World Bank, presumably
-  - US aid as % of GDP - somewhere
+    - Control of corruption (Kaufmann 2009), ranges from -1.63 (high corruption) to 2.58 (low corruption)
+    - Lagged Polity
+    - Women legislators (percent) - World Bank Gender Statistics database
+    - Women economic rights - CIRI
+    - International regime membership - binary indicator for Palermo protocol ratification
+    - Log GDP/capita - World Bank, presumably
+    - US aid as % of GDP - somewhere
 
 ### Table 3: Anti-trafficking policies in aggregate
 
