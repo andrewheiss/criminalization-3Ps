@@ -17,9 +17,9 @@ library(countrycode)
 
 We fix these:
 
-- BHU (Bhutan): 760 / BTN
-- KSV (Kosovo): 347 / XKK
-- RMI (Marshall Islands): 983 / MHL
+- BHU (Bhutan): 760 / BTN / BT
+- KSV (Kosovo): 347 / XKK / XK
+- RMI (Marshall Islands): 983 / MHL / MH
 - HKG (Hong Kong): 715
 - SRB (Serbia): 340
 
@@ -35,15 +35,17 @@ We ignore these:
 cho.raw <- read_excel("data/Cho 3Ps/3P_Index_2000-2015.xlsx", skip = 2)
 
 countries.to.ignore <- c("ABW", "ANT", "BES", "CUW", "MAC")
-wb2iso <- c(BES = NA, BHU = "BTN", KSV = "XKK", RMI = "MHL")
+wb2iso2 <- c(BES = NA, BHU = "BT", KSV = "XK", RMI = "MH")
+wb2iso3 <- c(BES = NA, BHU = "BTN", KSV = "XKK", RMI = "MHL")
 wb2cow <- c(ABW = NA, ANT = NA, BES = NA, CUW = NA, MAC = NA,
             BHU = 760L, HKG = 715L, KSV = 347L, RMI = 983L, SRB = 340L)
 
 cho.clean <- cho.raw %>%
-  mutate(iso3 = countrycode(Code, "wb", "iso3c", custom_match = wb2iso),
+  mutate(iso2 = countrycode(Code, "wb", "iso2c", custom_match = wb2iso2),
+         iso3 = countrycode(Code, "wb", "iso3c", custom_match = wb2iso3),
          cowcode = countrycode(Code, "wb", "cown", custom_match = wb2cow)) %>%
   filter(!(Code %in% countries.to.ignore)) %>%
-  select(year = Year, iso3, cowcode, 
+  select(year = Year, iso2, iso3, cowcode, 
          prosecution = Prosecution, protection = Protection,
          prevention = Prevention, p = `Overall 3P`)
 
