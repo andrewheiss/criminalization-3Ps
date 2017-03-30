@@ -108,6 +108,18 @@ polity.raw <- read_excel("data/Polity/p4v2015.xls") %>%
 ```
 
 
+### CIRI
+
+We use data on women's economic rights from [CIRI](http://www.humanrightsdata.com/).
+
+```{r load-ciri, message=FALSE}
+ciri.raw <- read_csv("data/CIRI/CIRI Data 1981_2011 2014.04.14.csv",
+                     na = c("-999", "-77", "-66")) %>%
+  select(cowcode = COW, year = YEAR, wecon = WECON) %>%
+  filter(year >= 2000)
+```
+
+
 ### World Bank
 
 We use GDP per capita data (constant 2010 USD) from the [World Bank](http://data.worldbank.org/).
