@@ -38,13 +38,17 @@ cho.raw <- read_excel("data/Cho 3Ps/3P_Index_2000-2015.xlsx", skip = 2)
 countries.to.ignore <- c("ABW", "ANT", "BES", "CUW", "MAC")
 wb2iso2 <- c(BES = NA, BHU = "BT", KSV = "XK", RMI = "MH")
 wb2iso3 <- c(BES = NA, BHU = "BTN", KSV = "XKK", RMI = "MHL")
-wb2cow <- c(ABW = NA, ANT = NA, BES = NA, CUW = NA, MAC = NA,
-            BHU = 760L, HKG = 715L, KSV = 347L, RMI = 983L, SRB = 340L)
+wb2cow <- c(BHU = 760L, HKG = 715L, KSV = 347L, RMI = 983L, SRB = 340L)
+wb_ignore <- c(ABW = NA, AIA = NA, ANT = NA, ASM = NA, BES = NA, BMU = NA, 
+               COK = NA, CUW = NA, CYM = NA, GRL = NA, GUF = NA, GUM = NA, 
+               JEY = NA, MAC = NA, MTQ = NA, NCL = NA, NIU = NA, PRI = NA, 
+               REU = NA, VIR = NA, WBG = NA)
 
 cho.clean <- cho.raw %>%
   mutate(iso2 = countrycode(Code, "wb", "iso2c", custom_match = wb2iso2),
          iso3 = countrycode(Code, "wb", "iso3c", custom_match = wb2iso3),
-         cowcode = countrycode(Code, "wb", "cown", custom_match = wb2cow)) %>%
+         cowcode = countrycode(Code, "wb", "cown", 
+                               custom_match = c(wb2cow, wb_ignore))) %>%
   filter(!(Code %in% countries.to.ignore)) %>%
   select(year = Year, iso2, iso3, cowcode, 
          prosecution = Prosecution, protection = Protection,
@@ -53,6 +57,42 @@ cho.clean <- cho.raw %>%
 cho.panel <- cho.clean %>%
   expand(cowcode, year) %>%
   left_join(cho.clean, by = c("cowcode", "year"))
+```
+
+
+### Control of corruption
+
+We use control of corruption from the World Bank's Worldwide Governance Indicators data. [The official(?) website](http://info.worldbank.org/governance/wgi/) only offers WGI data as a horrific Excel file, but the [WGI's pseudo-page at the World Bank](http://data.worldbank.org/data-catalog/worldwide-governance-indicators) provides a link to a CSV(!).
+
+There are more countries in the WGI data than in the 3P data. We ignore these:
+
+- AIA = Anguilla
+- ASM = American Samoa
+- BMU = Bermuda
+- COK = Cook Islands
+- CYM = Cayman Islands
+- GRL = Greenland
+- GUF = French Guiana
+- GUM = Guam
+- JEY = Jersey, Channel Islands
+- MTQ = Martinique
+- NCL = New Caledonia
+- NIU = Niue
+- PRI = Puerto Rico
+- REU = Réunion
+- VIR = Virgin Islands
+- WBG = West Bank and Gaza
+
+```{r load-corruption, message=FALSE, warning=FALSE}
+wgi.raw <- read_csv("data/WGI/WGI_Data.csv")
+
+corruption <- wgi.raw %>% 
+  filter(`Indicator Code` == "CC.EST") %>%
+  mutate(cowcode = countrycode(`Country Code`, "wb", "cown", 
+                               custom_match = c(wb2cow, wb_ignore))) %>%
+  filter(!is.na(cowcode)) %>%
+  select(cowcode, matches("\\d{4}")) %>%
+  gather(year, corruption, -cowcode)
 ```
 
 
