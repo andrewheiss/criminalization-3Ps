@@ -57,6 +57,8 @@ cho.clean <- cho.raw %>%
 cho.panel <- cho.clean %>%
   expand(cowcode, year) %>%
   left_join(cho.clean, by = c("cowcode", "year"))
+
+cho.clean %>% glimpse()
 ```
 
 
@@ -94,6 +96,8 @@ corruption <- wgi.raw %>%
   select(cowcode, matches("\\d{4}")) %>%
   gather(year, corruption, -cowcode) %>%
   filter(year >= 2000)
+
+corruption %>% glimpse()
 ```
 
 
@@ -102,9 +106,13 @@ corruption <- wgi.raw %>%
 We use democracy data from [Polity IV](http://www.systemicpeace.org/inscrdata.html).
 
 ```{r load-polity, message=FALSE}
-polity.raw <- read_excel("data/Polity/p4v2015.xls") %>%
+polity.raw <- read_excel("data/Polity/p4v2015.xls")
+
+polity <- polity.raw %>%
   select(cowcode = ccode, year, polity = polity2) %>%
   filter(year >= 2000)
+
+polity %>% glimpse()
 ```
 
 
@@ -127,6 +135,8 @@ gender <- gender.raw %>%
   select(cowcode, matches("\\d{4}")) %>%
   gather(year, female.leg.prop, -cowcode) %>%
   filter(year >= 2000)
+
+gender %>% glimpse()
 ```
 
 
@@ -136,9 +146,22 @@ We use data on women's economic rights from [CIRI](http://www.humanrightsdata.co
 
 ```{r load-ciri, message=FALSE}
 ciri.raw <- read_csv("data/CIRI/CIRI Data 1981_2011 2014.04.14.csv",
-                     na = c("-999", "-77", "-66")) %>%
+                     na = c("-999", "-77", "-66")) 
+
+wecon <- ciri.raw %>%
   select(cowcode = COW, year = YEAR, wecon = WECON) %>%
   filter(year >= 2000)
+
+wecon %>% glimpse()
+```
+
+
+### International regime membership
+
+We use data from Kelley (2017) on Palermo Protocol ratifications.
+
+```{r load-palermo}
+
 ```
 
 
@@ -159,11 +182,22 @@ wdi.raw <- WDI(country="all", wdi.indicators,
                extra=FALSE, start=2000, end=2015)
 
 # Filter countries here instead
-wdi.clean.intermediate <- wdi.raw %>%
+wdi <- wdi.raw %>%
   filter(iso2c %in% unique(cho.clean$iso2)) %>%
   arrange(iso2c, year) %>%
   rename(gdp.capita.2010 = NY.GDP.PCAP.KD, gdp.2010 = NY.GDP.MKTP.KD, 
          gdp.current = NY.GDP.MKTP.CD, population = SP.POP.TOTL)
+
+wdi %>% glimpse()
+```
+
+
+### US aid
+
+We use data from… somewhere… to measure US aid as a percent of GDP.
+
+```{r load-us-aid}
+
 ```
 
 
