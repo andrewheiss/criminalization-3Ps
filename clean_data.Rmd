@@ -3,6 +3,55 @@ title: "Data cleaning"
 date: "`r format(Sys.time(), '%F')`"
 ---
 
+```{r load-libraries, message=FALSE}
+library(tidyverse)
+library(readxl)
+library(countrycode)
+```
+
 ## Collect data
+
+### 3P Trafficking Index
+
+[Cho et al.'s 3P Trafficking Index](http://www.economics-human-trafficking.org/data-and-reports.html) uses World Bank codes which don't always perfectly correspond with ISO3 or COW codes. We ignore some countries and make manual changes for others. 
+
+We fix these:
+
+- BHU (Bhutan): 760 / BTN
+- KSV (Kosovo): 347 / XKK
+- RMI (Marshall Islands): 983 / MHL
+- HKG (Hong Kong): 715
+- SRB (Serbia): 340
+
+We ignore these:
+
+- BES (Caribbean Netherlands): no cowcode / no ISO
+- ABW (Aruba): no cowcode
+- ANT (Netherlands Antilles): no cowcode
+- CUW (Curacao): no cowcode
+- MAC (Macao): no cowcode
+
+```{r load-3p, message=FALSE}
+cho.raw <- read_excel("data/Cho 3Ps/3P_Index_2000-2015.xlsx", skip = 2)
+
+countries.to.ignore <- c("ABW", "ANT", "BES", "CUW", "MAC")
+wb2iso <- c(BES = NA, BHU = "BTN", KSV = "XKK", RMI = "MHL")
+wb2cow <- c(ABW = NA, ANT = NA, BES = NA, CUW = NA, MAC = NA,
+            BHU = 760L, HKG = 715L, KSV = 347L, RMI = 983L, SRB = 340L)
+
+cho.clean <- cho.raw %>%
+  mutate(iso3 = countrycode(Code, "wb", "iso3c", custom_match = wb2iso),
+         cowcode = countrycode(Code, "wb", "cown", custom_match = wb2cow)) %>%
+  filter(!(Code %in% countries.to.ignore)) %>%
+  select(year = Year, iso3, cowcode, 
+         prosecution = Prosecution, protection = Protection,
+         prevention = Prevention, p = `Overall 3P`)
+
+cho.panel <- cho.clean %>%
+  expand(cowcode, year) %>%
+  left_join(cho.clean, by = c("cowcode", "year"))
+```
+
+
 
 ## Combine data
