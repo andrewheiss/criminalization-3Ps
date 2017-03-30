@@ -15,6 +15,7 @@ navbar:
 output:
   html_document:
     theme: yeti
+    css: html/fixes.css
     highlight: pygments
     code_folding: hide
     toc: yes
