@@ -3,6 +3,7 @@
 .Rhistory
 .RData
 .Ruserdata
+*_cache/*
 
 # R Markdown website stuff
 _site/*
