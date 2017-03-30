@@ -92,7 +92,8 @@ corruption <- wgi.raw %>%
                                custom_match = c(wb2cow, wb_ignore))) %>%
   filter(!is.na(cowcode)) %>%
   select(cowcode, matches("\\d{4}")) %>%
-  gather(year, corruption, -cowcode)
+  gather(year, corruption, -cowcode) %>%
+  filter(year >= 2000)
 ```
 
 
