@@ -108,6 +108,28 @@ polity.raw <- read_excel("data/Polity/p4v2015.xls") %>%
 ```
 
 
+### Women legislators
+
+We use data on the percent of women legislators from the [World Bank's Gender Statistics database](http://data.worldbank.org/data-catalog/gender-statistics).
+
+Dozens of countries don't correspond to COW codes here, mostly becuase the data includes observations for regions like the Arab World (ARB) and Fragile and conflict affected situations (FCS). Rather than explicitly define every code to ignore, we just implicitly ignore unmatched codes.
+
+I'm super curious to know what the original authors did with this data, too. 72% is missing!
+
+```{r load-wb-gender, message=FALSE, cache=TRUE}
+gender.raw <- read_csv("data/WB gender stats/Gender_Stat_Data.csv") 
+
+gender <- gender.raw %>%
+  filter(`Indicator Code` == "SG.GEN.LSOM.ZS") %>%
+  mutate(cowcode = countrycode(`Country Code`, "wb", "cown", 
+                               custom_match = c(wb2cow, wb_ignore))) %>%
+  filter(!is.na(cowcode)) %>%
+  select(cowcode, matches("\\d{4}")) %>%
+  gather(year, female.leg.prop, -cowcode) %>%
+  filter(year >= 2000)
+```
+
+
 ### CIRI
 
 We use data on women's economic rights from [CIRI](http://www.humanrightsdata.com/).
