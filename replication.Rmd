@@ -4,16 +4,37 @@ date: "`r format(Sys.time(), '%F')`"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.retina = 2,
+                      tidy.opts=list(width.cutoff = 100),  # For code
+                      options(width = 100))  # For output
 ```
 
----
+```{r load-libraries, message=FALSE}
+library(MASS)  # Has to come first because of dplyr::select
+library(tidyverse)
+library(stargazer)
 
-## Original models
+# By default, R uses polynomial contrasts for ordered factors in linear models
+# options("contrasts") 
+# So make ordered factors use treatment contrasts instead
+options(contrasts=rep("contr.treatment", 2))
+
+source("_functions.R")
+```
+
+```{r load-data}
+df.cho <- readRDS("data/df_cho.rds") %>%
+  group_by(cowcode) %>%
+  mutate(p_lag = lag(p)) %>%
+  filter(year > 2003, year < 2010) %>%
+  mutate(female.leg.prop = ifelse(is.na(female.leg.prop), 0, female.leg.prop),
+         cow = as.factor(cowcode))
+```
 
 Replication of Seo-Young Cho, Axel Dreher, and Eric Neumayer. 2014. "Determinants of Anti-Trafficking Policies: Evidence from a New Index." *The Scandinavian Journal of Economics* 116, no. 2 (April): 429–54. doi: [10.1111/sjoe.12055](https://dx.doi.org/10.1111/sjoe.12055).
 
-### Model details
+
+## Model details
 
 - DV = 3P variables
 - Pooled time-series cross-section (panel) data from 2002–2010 (but 2010 is excluded, according to footnote 20)
@@ -30,23 +51,71 @@ Replication of Seo-Young Cho, Axel Dreher, and Eric Neumayer. 2014. "Determinant
     - Log GDP/capita - World Bank, presumably
     - US aid as % of GDP - somewhere
 
-### Table 3: Anti-trafficking policies in aggregate
+## Table 3: Anti-trafficking policies in aggregate
+
+### Original models
 
 (*Uses ordered probit, OLS, and GMM*)
 
 ![Table 3 from original article](img/table-3.png)
 
-### Table 4: Anti-trafficking policy components
+
+### Replicated models
+
+```{r replicate-table-3}
+orig3.2 <- polr(as.ordered(p) ~ p_lag + corruption + polity + female.leg.prop + wecon + 
+                  palermo.ratified + gdp.capita_log + us.aid.pct.gdp, 
+                data = df.cho, method = "probit", Hess = TRUE)
+
+orig3.3 <- lm(p ~ p_lag + corruption + polity + female.leg.prop + wecon + 
+                palermo.ratified + gdp.capita_log + us.aid.pct.gdp, 
+              data = df.cho)
+
+orig3.4 <- lm(p ~ p_lag + corruption + polity + female.leg.prop + wecon + 
+                palermo.ratified + gdp.capita_log + us.aid.pct.gdp + cow, 
+              data = df.cho)
+
+orig3.6 <- lm(p ~ p_lag + corruption + polity + female.leg.prop + wecon + 
+                cow, 
+              data = df.cho)
+```
+
+```{r display-table-3, results="asis"}
+models <- list(orig3.2, orig3.3, orig3.4, orig3.6)
+
+var.labs <- c("3P index (t − 1)", "Control of corruption", "Democracy", 
+              "Women legislators (%)", "Women economic rights",
+              "Palermo Protocol ratified", "GDP per capita (log)", 
+              "US aid (% of GDP)")
+
+col.labs <- c("(2)", "(3)", "(4)", "(6)")
+
+extra.lines <- list(c("Model type",
+                      c("Ordered probit", "OLS", "OLS", "OLS")),
+                    c("Country fixed effects",
+                      c("No", "No", "Yes", "Yes")),
+                    c("Pseudo R²",
+                      c(round(pR2(orig3.2)[["McFadden"]], 3)), "", "", ""))
+
+title <- "Replicated models from Table 3 (GMM models omitted)"
+
+stargazer(models, 
+          type = "html", omit = c("cow", "Constant"), 
+          add.lines = extra.lines, title = title, covariate.labels = var.labs,
+          keep.stat = c("n", "adj.rsq"),
+          model.numbers = FALSE, column.labels = col.labs, 
+          dep.var.caption = "Aggregate 3P index",
+          model.names = FALSE, dep.var.labels.include = FALSE)
+```
+
+
+## Table 4: Anti-trafficking policy components
+
+### Original models
 
 (*Uses only GMM*)
 
 ![Table 4 from original article](img/table-4.png)
 
----
 
-## Replication
-
-```{r load-libraries, message=FALSE}
-library(tidyverse)
-```
-
+### Replicated models
