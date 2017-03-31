@@ -51,6 +51,7 @@ wb_ignore <- c(ABW = NA, AIA = NA, ANT = NA, ASM = NA, BES = NA, BMU = NA,
                JEY = NA, MAC = NA, MTQ = NA, NCL = NA, NIU = NA, PRI = NA, 
                REU = NA, VIR = NA, WBG = NA)
 countryname2cow <- c(`European Union` = NA, Serbia = 340L)
+iso22cow <- c(HK = 715L, RS = 340L, XK = 347L)
 
 cho.clean <- cho.raw %>%
   mutate(iso2 = countrycode(Code, "wb", "iso2c", custom_match = wb2iso2),
@@ -230,7 +231,11 @@ wdi.raw <- WDI(country="all", wdi.indicators,
 wdi <- wdi.raw %>%
   filter(iso2c %in% unique(cho.clean$iso2)) %>%
   arrange(iso2c, year) %>%
-  rename(gdp.capita.2010 = NY.GDP.PCAP.KD, gdp.2010 = NY.GDP.MKTP.KD, 
+  mutate(cowcode = countrycode(iso2c, "iso2c", "cown",
+                               custom_match = iso22cow),
+         year = as.integer(year)) %>%
+  select(cowcode, year, 
+         gdp.capita.2010 = NY.GDP.PCAP.KD, gdp.2010 = NY.GDP.MKTP.KD, 
          gdp.current = NY.GDP.MKTP.CD, population = SP.POP.TOTL)
 
 wdi %>% glimpse()
