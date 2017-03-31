@@ -18,6 +18,7 @@ output:
     css: html/fixes.css
     highlight: pygments
     code_folding: hide
+    code_download: true
     toc: yes
     toc_float:
       collapsed: false
