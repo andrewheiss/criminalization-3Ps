@@ -362,4 +362,6 @@ testthat::expect_equal(nrow(df.cho), nrow(empty.panel))
 
 df.cho %>% datatable(extensions = "Responsive") %>% 
   formatRound(select_if(df.cho, is.double) %>% colnames())
+
+saveRDS(df.cho, "data/df_cho.rds")
 ```
