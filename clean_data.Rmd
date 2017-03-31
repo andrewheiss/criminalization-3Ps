@@ -15,6 +15,7 @@ library(lubridate)
 library(countrycode)
 library(WDI)
 library(rvest)
+library(DT)
 ```
 
 ## Collect data
@@ -66,7 +67,8 @@ cho.clean <- cho.raw %>%
   select(year = Year, iso2, iso3, cowcode, 
          prosecution = Prosecution, protection = Protection,
          prevention = Prevention, p = `Overall 3P`) %>%
-  mutate(year = as.integer(year), cowcode = as.integer(cowcode))
+  mutate_at(vars(year, cowcode, prosecution, protection, prevention, p),
+            funs(as.integer))
 
 empty.panel <- cho.clean %>%
   expand(cowcode, year)
@@ -124,7 +126,8 @@ polity.raw <- read_excel("data/Polity/p4v2015.xls")
 
 polity <- polity.raw %>%
   select(cowcode = ccode, year, polity = polity2) %>%
-  mutate(year = as.integer(year), cowcode = as.integer(cowcode)) %>%
+  mutate_at(vars(year, cowcode, polity),
+            funs(as.integer)) %>%
   filter(year >= 2000)
 
 polity %>% glimpse()
@@ -335,7 +338,7 @@ usaid %>% glimpse()
 
 ## Combine data
 
-```{r}
+```{r combine-final-data, results="asis"}
 df.cho <- empty.panel %>%
   left_join(cho.clean, by = c("cowcode", "year")) %>%
   left_join(corruption, by = c("cowcode", "year")) %>%
@@ -357,6 +360,6 @@ df.cho <- empty.panel %>%
 
 testthat::expect_equal(nrow(df.cho), nrow(empty.panel))
 
-df.cho %>% glimpse()
+df.cho %>% datatable(extensions = "Responsive") %>% 
+  formatRound(select_if(df.cho, is.double) %>% colnames())
 ```
-
