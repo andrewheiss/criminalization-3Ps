@@ -52,6 +52,8 @@ wb_ignore <- c(ABW = NA, AIA = NA, ANT = NA, ASM = NA, BES = NA, BMU = NA,
                REU = NA, VIR = NA, WBG = NA)
 countryname2cow <- c(`European Union` = NA, Serbia = 340L)
 iso22cow <- c(HK = 715L, RS = 340L, XK = 347L)
+iso32cow <- c(HKG = 715L, SRB = 340L, SCG = 345L, XKK = 347L, PSE = 669L)
+
 
 cho.clean <- cho.raw %>%
   mutate(iso2 = countrycode(Code, "wb", "iso2c", custom_match = wb2iso2),
@@ -249,7 +251,64 @@ wdi %>% glimpse()
 
 ### US aid
 
-We use data from… somewhere… to measure US aid as a percent of GDP.
+USAID provides the complete dataset for its [Foreign Aid Explorer](https://explorer.usaid.gov/aid-dashboard.html) as a [giant CSV file](https://explorer.usaid.gov/data.html). The data includes both economic and military aid, but it's easy to filter out the military aid. Here we only look at obligations, not disbursements, so that the data is comparable to the OECD data from AidData. The data we downloaded provides constant amounts in 2015 dollars; we rescale that to 2010 to match all other variables. 
+
+```{r load-us-aid, message=FALSE, warning=FALSE, cache=TRUE}
+usaid.url <- "https://explorer.usaid.gov/prepared/us_foreign_aid_complete.csv"
+usaid.path <- file.path("data", "USAID")
+usaid.name <- basename(usaid.url)
+
+# Download USAID data if needed
+if (!file.exists(file.path(usaid.path, usaid.name))) {
+  httr::GET(usaid.url, 
+            httr::write_disk(file.path(usaid.path, usaid.name)), 
+            httr::progress())
+}
+
+usaid.raw <- read_csv(file.path(usaid.path, usaid.name),
+                      na = c("", "NA", "NULL"))
+
+usaid.clean <- usaid.raw %>%
+  filter(assistance_category_name == "Economic") %>%
+  filter(transaction_type_name == "Obligations") %>%
+  mutate(country_code = recode(country_code, `CS-KM` = "XKK")) %>%
+  # Remove regions and World
+  filter(!str_detect(country_name, "Region"),
+         !(country_name %in% c("World")),
+         numeric_year >= 2000, numeric_year < 2016) %>%
+  mutate(cowcode = countrycode(country_code, "iso3c", "cown",
+                               custom_match = iso32cow)) %>%
+  # Get rid of tiny states
+  filter(!is.na(cowcode)) %>%
+  select(cowcode, year = numeric_year, 
+         oda.us.current = current_amount, oda.us.2015 = constant_amount) %>%
+  mutate(aid.deflator = oda.us.current / oda.us.2015 * 100,
+         year = as.integer(year))
+
+# USAID's conversion to constant 2015 dollars doesn't seem to take country
+# differences into account—the deflator for each country in 2010 is essentially
+# 91.79. When there are differences, it's because of floating point issues
+# (like, if there are tiny grants of $3, there aren't enough decimal points to
+# get the fraction to 91.79). So we just take the median value of the deflator
+# for all countries and all grants and use that.
+
+# Deflator = current aid / constant aid * 100
+# Current aid in year_t * (deflator in year_target / deflator in year_t)
+usaid.deflator.2010 <- usaid.clean %>%
+  filter(year == 2010) %>%
+  summarise(deflator.target.year = median(aid.deflator, na.rm=TRUE)) %>%
+  as.numeric()
+
+usaid.rescaled <- usaid.clean %>%
+  mutate(oda.us.2010 = oda.us.current * (usaid.deflator.2010 / aid.deflator))
+
+usaid <- usaid.rescaled %>% 
+  group_by(cowcode, year) %>%
+  summarise(us.aid = sum(oda.us.2010))
+
+usaid %>% glimpse()
+```
+
 
 ```{r load-us-aid}
 
