@@ -34,13 +34,13 @@ Replication of Seo-Young Cho, Axel Dreher, and Eric Neumayer. 2014. "Determinant
 
 (*Uses ordered probit, OLS, and GMM*)
 
-![Table 3 from original article](../img/table-3.png)
+![Table 3 from original article](img/table-3.png)
 
 ### Table 4: Anti-trafficking policy components
 
 (*Uses only GMM*)
 
-![Table 4 from original article](../img/table-4.png)
+![Table 4 from original article](img/table-4.png)
 
 ---
 
