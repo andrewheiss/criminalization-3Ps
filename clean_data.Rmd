@@ -271,6 +271,19 @@ wdi %>% glimpse()
 
 USAID provides the complete dataset for its [Foreign Aid Explorer](https://explorer.usaid.gov/aid-dashboard.html) as a [giant CSV file](https://explorer.usaid.gov/data.html). The data includes both economic and military aid, but it's easy to filter out the military aid. Here we only look at obligations, not disbursements, so that the data is comparable to the OECD data from AidData. The data we downloaded provides constant amounts in 2015 dollars; we rescale that to 2010 to match all other variables. 
 
+USAID's conversion to constant 2015 dollars doesn't seem to take country differences into account—the deflator for each country in 2010 is essentially 91.79. When there are differences, it's because of floating point issue (like, if there are tiny grants of $3, there aren't enough decimal points to get the fraction to 91.79). So we just take the median value of the deflator
+for all countries and all grants and use that.
+
+$$
+\begin{aligned}
+\text{Deflator} &= \frac{\text{current aid}}{\text{constant aid} \times 100} \\
+\text{Constant aid in year}_{target} &= \text{Current aid in year}_t \times \frac{\text{deflator in year}_{target}}{\text{deflator in year}_t}
+\end{aligned}
+$$
+
+We include only obligated economic aid.
+
+
 ```{r load-us-aid, message=FALSE, warning=FALSE, cache=TRUE}
 usaid.url <- "https://explorer.usaid.gov/prepared/us_foreign_aid_complete.csv"
 usaid.path <- file.path("data", "USAID")
@@ -300,18 +313,11 @@ usaid.clean <- usaid.raw %>%
   filter(!is.na(cowcode)) %>%
   select(cowcode, year = numeric_year, 
          oda.us.current = current_amount, oda.us.2015 = constant_amount) %>%
+  filter(oda.us.current != 0, oda.us.2015 != 0) %>%
   mutate(aid.deflator = oda.us.current / oda.us.2015 * 100,
          year = as.integer(year))
 
-# USAID's conversion to constant 2015 dollars doesn't seem to take country
-# differences into account—the deflator for each country in 2010 is essentially
-# 91.79. When there are differences, it's because of floating point issues
-# (like, if there are tiny grants of $3, there aren't enough decimal points to
-# get the fraction to 91.79). So we just take the median value of the deflator
-# for all countries and all grants and use that.
-
-# Deflator = current aid / constant aid * 100
-# Current aid in year_t * (deflator in year_target / deflator in year_t)
+# Convert 2015 dollars to 2010
 usaid.deflator.2010 <- usaid.clean %>%
   filter(year == 2010) %>%
   summarise(deflator.target.year = median(aid.deflator, na.rm=TRUE)) %>%
