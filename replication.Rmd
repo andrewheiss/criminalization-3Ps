@@ -28,7 +28,7 @@ df.cho <- readRDS("data/df_cho.rds") %>%
   mutate(p_lag = lag(p)) %>%
   filter(year > 2003, year < 2010) %>%
   mutate(female.leg.prop = ifelse(is.na(female.leg.prop), 0, female.leg.prop),
-         cow = as.factor(cowcode))
+         cowcode.i = as.factor(cowcode), year.i = as.factor(year))
 ```
 
 Replication of Seo-Young Cho, Axel Dreher, and Eric Neumayer. 2014. "Determinants of Anti-Trafficking Policies: Evidence from a New Index." *The Scandinavian Journal of Economics* 116, no. 2 (April): 429–54. doi: [10.1111/sjoe.12055](https://dx.doi.org/10.1111/sjoe.12055).
@@ -64,19 +64,20 @@ Replication of Seo-Young Cho, Axel Dreher, and Eric Neumayer. 2014. "Determinant
 
 ```{r replicate-table-3}
 orig3.2 <- polr(as.ordered(p) ~ p_lag + corruption + polity + female.leg.prop + wecon + 
-                  palermo.ratified + gdp.capita_log + us.aid.pct.gdp, 
+                  palermo.ratified + gdp.capita_log + us.aid.pct.gdp + year.i, 
                 data = df.cho, method = "probit", Hess = TRUE)
 
 orig3.3 <- lm(p ~ p_lag + corruption + polity + female.leg.prop + wecon + 
-                palermo.ratified + gdp.capita_log + us.aid.pct.gdp, 
+                palermo.ratified + gdp.capita_log + us.aid.pct.gdp + year.i, 
               data = df.cho)
 
 orig3.4 <- lm(p ~ p_lag + corruption + polity + female.leg.prop + wecon + 
-                palermo.ratified + gdp.capita_log + us.aid.pct.gdp + cow, 
+                palermo.ratified + gdp.capita_log + us.aid.pct.gdp + 
+                cowcode.i + year.i, 
               data = df.cho)
 
 orig3.6 <- lm(p ~ p_lag + corruption + polity + female.leg.prop + wecon + 
-                cow, 
+                cowcode.i + year.i, 
               data = df.cho)
 ```
 
@@ -94,19 +95,23 @@ extra.lines <- list(c("Model type",
                       c("Ordered probit", "OLS", "OLS", "OLS")),
                     c("Country fixed effects",
                       c("No", "No", "Yes", "Yes")),
+                    c("Year fixed effects",
+                      c("Yes", "Yes", "Yes", "Yes")),
                     c("Pseudo R²",
                       c(round(pR2(orig3.2)[["McFadden"]], 3)), "", "", ""))
 
 title <- "Replicated models from Table 3 (GMM models omitted)"
 
 stargazer(models, 
-          type = "html", omit = c("cow", "Constant"), 
+          type = "html", omit = c("cow", "Constant", "year"), 
           add.lines = extra.lines, title = title, covariate.labels = var.labs,
           keep.stat = c("n", "adj.rsq"),
           model.numbers = FALSE, column.labels = col.labs, 
           dep.var.caption = "Aggregate 3P index",
           model.names = FALSE, dep.var.labels.include = FALSE)
 ```
+ 
+\
 
 
 ## Table 4: Anti-trafficking policy components
