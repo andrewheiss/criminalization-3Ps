@@ -25,7 +25,9 @@ source("_functions.R")
 ```{r load-data}
 df.cho <- readRDS("data/df_cho.rds") %>%
   group_by(cowcode) %>%
-  mutate(p_lag = lag(p)) %>%
+  mutate_at(vars(p, prosecution, protection, prevention),
+            funs(lag = lag(.),
+                 lag2 = lag(., 2))) %>%
   filter(year > 2003, year < 2010) %>%
   mutate(female.leg.prop = ifelse(is.na(female.leg.prop), 0, female.leg.prop),
          cowcode.i = as.factor(cowcode), year.i = as.factor(year))
@@ -89,7 +91,7 @@ var.labs <- c("3P index (t − 1)", "Control of corruption", "Democracy",
               "Palermo Protocol ratified", "GDP per capita (log)", 
               "US aid (% of GDP)")
 
-col.labs <- c("(2)", "(3)", "(4)", "(6)")
+col.labs <- sprintf("(%s)", c(2, 3, 4, 6))
 
 extra.lines <- list(c("Model type",
                       c("Ordered probit", "OLS", "OLS", "OLS")),
@@ -124,3 +126,82 @@ stargazer(models,
 
 
 ### Replicated models
+
+```{r replicate-table-4}
+orig4.1 <- lm(prevention ~ prevention_lag + corruption + polity + 
+                female.leg.prop + wecon + 
+                palermo.ratified + gdp.capita_log + us.aid.pct.gdp + 
+                year.i + cowcode.i, 
+              data = df.cho)
+
+orig4.2 <- lm(prevention ~ prevention_lag + corruption + polity + 
+                female.leg.prop + wecon + 
+                year.i + cowcode.i,
+              data = df.cho)
+
+orig4.3 <- lm(prosecution ~ prosecution_lag + corruption + polity + 
+                female.leg.prop + wecon + 
+                palermo.ratified + gdp.capita_log + us.aid.pct.gdp + 
+                year.i + cowcode.i, 
+              data = df.cho)
+
+orig4.4 <- lm(prosecution ~ prosecution_lag + corruption + polity + 
+                female.leg.prop + wecon + 
+                year.i + cowcode.i,
+              data = df.cho)
+
+orig4.5 <- lm(prosecution ~ prosecution_lag + prosecution_lag2 + corruption + polity + 
+                female.leg.prop + wecon + 
+                palermo.ratified + gdp.capita_log + us.aid.pct.gdp + 
+                year.i + cowcode.i, 
+              data = df.cho)
+
+orig4.6 <- lm(prosecution ~ prosecution_lag + prosecution_lag2 + corruption + polity + 
+                female.leg.prop + wecon + 
+                year.i + cowcode.i,
+              data = df.cho)
+
+orig4.7 <- lm(protection ~ protection_lag + corruption + polity + 
+                female.leg.prop + wecon + 
+                palermo.ratified + gdp.capita_log + us.aid.pct.gdp + 
+                year.i + cowcode.i, 
+              data = df.cho)
+
+orig4.8 <- lm(protection ~ protection_lag + corruption + polity + 
+                female.leg.prop + wecon + 
+                year.i + cowcode.i,
+              data = df.cho)
+```
+
+```{r display-table-4, results="asis"}
+models <- list(orig4.1, orig4.2, orig4.3, orig4.4,
+               orig4.5, orig4.6, orig4.7, orig4.8)
+
+num.models <- length(models)
+
+var.labs <- c("Prevention (t − 1)", "Prosecution (t − 1)",
+              "Prosecution (t − 2)", "Protection (t − 1)",
+              "Control of corruption", "Democracy", 
+              "Women legislators (%)", "Women economic rights",
+              "Palermo Protocol ratified", "GDP per capita (log)", 
+              "US aid (% of GDP)")
+
+col.labs <- sprintf("(%s)", 1:num.models)
+
+extra.lines <- list(c("Model type",
+                      rep("OLS", num.models)),
+                    c("Country fixed effects",
+                      rep("Yes", num.models)),
+                    c("Year fixed effects",
+                      rep("Yes", num.models)))
+
+title <- "Replicated models from Table 4 (OLS instead of GMM)"
+
+stargazer(models, 
+          type = "html", omit = c("cow", "Constant", "year"), 
+          add.lines = extra.lines, title = title, covariate.labels = var.labs,
+          keep.stat = c("n", "adj.rsq"),
+          model.numbers = FALSE, column.labels = col.labs, 
+          dep.var.caption = "Aggregate 3P index",
+          model.names = FALSE, dep.var.labels.include = FALSE)
+```
