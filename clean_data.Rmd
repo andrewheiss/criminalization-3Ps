@@ -10,8 +10,11 @@ knitr::opts_chunk$set(fig.retina = 2,
 
 library(tidyverse)
 library(readxl)
+library(stringr)
+library(lubridate)
 library(countrycode)
 library(WDI)
+library(rvest)
 ```
 
 ## Collect data
@@ -47,6 +50,7 @@ wb_ignore <- c(ABW = NA, AIA = NA, ANT = NA, ASM = NA, BES = NA, BMU = NA,
                COK = NA, CUW = NA, CYM = NA, GRL = NA, GUF = NA, GUM = NA, 
                JEY = NA, MAC = NA, MTQ = NA, NCL = NA, NIU = NA, PRI = NA, 
                REU = NA, VIR = NA, WBG = NA)
+countryname2cow <- c(`European Union` = NA, Serbia = 340L)
 
 cho.clean <- cho.raw %>%
   mutate(iso2 = countrycode(Code, "wb", "iso2c", custom_match = wb2iso2),
@@ -58,8 +62,10 @@ cho.clean <- cho.raw %>%
          prosecution = Prosecution, protection = Protection,
          prevention = Prevention, p = `Overall 3P`)
 
-cho.panel <- cho.clean %>%
-  expand(cowcode, year) %>%
+empty.panel <- cho.clean %>%
+  expand(cowcode, year)
+
+cho.panel <- empty.panel %>%
   left_join(cho.clean, by = c("cowcode", "year"))
 
 cho.clean %>% glimpse()
@@ -162,10 +168,45 @@ wecon %>% glimpse()
 
 ### International regime membership
 
-We use data from Kelley (2017) on Palermo Protocol ratifications.
+We use [data from from the UN's treaty database](https://web.archive.org/web/20160403063433/https://treaties.un.org/Pages/ViewDetails.aspx?src=TREATY&mtdsg_no=XVIII-12-a&chapter=18&lang=en) on Palermo Protocol ratifications.
 
 ```{r load-palermo}
+treaty.url <- "https://web.archive.org/web/20160403063433/https://treaties.un.org/Pages/ViewDetails.aspx?src=TREATY&mtdsg_no=XVIII-12-a&chapter=18&lang=en"
 
+treaty.file <- file.path("data/Palermo protocol/ratifications.html")
+
+if (!file.exists(treaty.file)) {
+  download.file(treaty.url, "data/Palermo protocol/ratifications.html")
+}
+
+ratifications.raw <- read_html(treaty.file)
+
+ratifications <- ratifications.raw %>%
+  html_nodes(xpath='//*[@id="ctl00_ContentPlaceHolder1_tblgrid"]') %>%
+  html_table(header=TRUE) %>% bind_rows() %>%
+  magrittr::set_colnames(c("participant", "signature", "ratification")) %>%
+  mutate(cowcode = countrycode(participant, "country.name", "cown",
+                               custom_match = countryname2cow)) %>%
+  mutate_at(vars(signature, ratification), 
+            funs(str_extract(str_replace(., "\\t", " "),
+                             "\\d{1,2}\\s+\\w{3}\\s+\\d{4}"))) %>%
+  mutate_at(vars(signature, ratification),
+            funs(date = dmy(.))) %>%
+  mutate_at(vars(signature_date, ratification_date),
+            funs(year = year(.))) %>%
+  filter(!is.na(cowcode))
+
+ratifications.panel <- ratifications %>%
+  select(cowcode, contains("_year")) %>%
+  right_join(empty.panel, by = "cowcode") %>%
+  mutate_at(vars(contains("_year")),
+            funs(bin = year >= .)) %>%
+  mutate_at(vars(contains("bin")),
+            funs(ifelse(is.na(.), FALSE, .))) %>%
+  select(cowcode, year, palermo.signed = signature_date_year_bin,
+         palermo.ratified = ratification_date_year_bin)
+
+ratifications.panel %>% glimpse()
 ```
 
 
