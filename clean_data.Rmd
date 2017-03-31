@@ -53,6 +53,8 @@ wb_ignore <- c(ABW = NA, AIA = NA, ANT = NA, ASM = NA, BES = NA, BMU = NA,
 countryname2cow <- c(`European Union` = NA, Serbia = 340L)
 iso22cow <- c(HK = 715L, RS = 340L, XK = 347L)
 iso32cow <- c(HKG = 715L, SRB = 340L, SCG = 345L, XKK = 347L, PSE = 669L)
+cow2iso2 <- c(`340` = "RS", `347` = "XK", `715` = "HK")
+cow2iso3 <- c(`340` = "SRB", `347` = "XKK", `715` = "HKG")
 
 
 cho.clean <- cho.raw %>%
@@ -68,9 +70,6 @@ cho.clean <- cho.raw %>%
 
 empty.panel <- cho.clean %>%
   expand(cowcode, year)
-
-cho.panel <- empty.panel %>%
-  left_join(cho.clean, by = c("cowcode", "year"))
 
 cho.clean %>% glimpse()
 ```
@@ -334,9 +333,30 @@ usaid %>% glimpse()
 ```
 
 
-```{r load-us-aid}
+## Combine data
 
+```{r}
+df.cho <- empty.panel %>%
+  left_join(cho.clean, by = c("cowcode", "year")) %>%
+  left_join(corruption, by = c("cowcode", "year")) %>%
+  left_join(polity, by = c("cowcode", "year")) %>%
+  left_join(gender, by = c("cowcode", "year")) %>%
+  left_join(wecon, by = c("cowcode", "year")) %>%
+  left_join(ratifications.panel, by = c("cowcode", "year")) %>%
+  left_join(wdi, by = c("cowcode", "year")) %>%
+  left_join(usaid, by = c("cowcode", "year")) %>%
+  # Adjust some variables now that this is a panel
+  rename(gdp = gdp.2010, gdp.capita = gdp.capita.2010) %>%
+  mutate(iso2 = countrycode(cowcode, "cown", "iso2c",
+                            custom_match = cow2iso2),
+         iso3 = countrycode(cowcode, "cown", "iso3c",
+                            custom_match = cow2iso3)) %>%
+  mutate(us.aid = ifelse(is.na(us.aid), 0, us.aid),
+         us.aid.pct.gdp = us.aid / gdp,
+         gdp.capita_log = log1p(gdp.capita))
+
+testthat::expect_equal(nrow(df.cho), nrow(empty.panel))
+
+df.cho %>% glimpse()
 ```
 
-
-## Combine data
