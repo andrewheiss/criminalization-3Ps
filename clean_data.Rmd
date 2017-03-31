@@ -161,11 +161,29 @@ gender %>% glimpse()
 
 We use data on women's economic rights from [CIRI](http://www.humanrightsdata.com/).
 
+There are three countries with `cowcode == 345` that cover three different time periods: 
+
+- Yugoslavia: 1981-1991
+- Serbia and Montenegro: 1992-1999, 2003-2005
+- Yugoslavia, Federal Republic of: 2000-2002
+
+We collapse them all into one continuous country
+
 ```{r load-ciri, message=FALSE}
 ciri.raw <- read_csv("data/CIRI/CIRI Data 1981_2011 2014.04.14.csv",
                      na = c("-999", "-77", "-66")) 
 
 wecon <- ciri.raw %>%
+  mutate(COW = case_when(
+    .$CTRY == "Kosovo" ~ 347L,
+    .$CTRY == "Serbia" ~ 340L,
+    .$CTRY == "Montenegro" ~ 341L,
+    TRUE ~ .$COW
+  )) %>%
+  filter(CTRY != "Soviet Union") %>%
+  filter(!(CTRY == "Yugoslavia" & !(YEAR %in% 1981:1991)),
+         !(CTRY == "Yugoslavia, Federal Republic of" & !(YEAR %in% 2000:2002)),
+         !(CTRY == "Serbia and Montenegro" & !(YEAR %in% c(1992:1999, 2003:2005)))) %>%
   select(cowcode = COW, year = YEAR, wecon = WECON) %>%
   filter(year >= 2000)
 
