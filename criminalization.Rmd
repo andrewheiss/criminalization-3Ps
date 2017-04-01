@@ -3,6 +3,28 @@ title: "Effect of criminalization"
 date: "`r format(Sys.time(), '%F')`"
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(fig.retina = 2,
+                      tidy.opts=list(width.cutoff = 100),  # For code
+                      options(width = 100))  # For output
+```
+
+```{r load-libraries, message=FALSE}
+library(tidyverse)
+library(stargazer)
+
+# By default, R uses polynomial contrasts for ordered factors in linear models
+# options("contrasts") 
+# So make ordered factors use treatment contrasts instead
+options(contrasts=rep("contr.treatment", 2))
+```
+
+```{r load-data}
+df.crim <- readRDS("data/df_crim.rds") %>%
+  filter(year > 2002, year < 2016) %>%
+  mutate(cowcode.i = as.factor(cowcode), year.i = as.factor(year))
+```
+
 TODO: 
 
 - Does criminalization mean just paper compliance or is there something there?
@@ -12,3 +34,57 @@ TODO:
 
 ## Run models
 
+For now, we just add the degree of criminalization as a continuous variable (0–2) to the original Cho OLS models.
+
+```{r crim-effect}
+model1 <- lm(p ~ p_lag + crim.level_lag + 
+               corruption + polity + female.leg.prop + wecon + 
+               palermo.ratified + gdp.capita_log + us.aid.pct.gdp + 
+               year.i + cowcode.i, 
+             data = df.crim)
+
+model2 <- lm(prevention ~ prevention_lag + crim.level_lag + 
+               corruption + polity + female.leg.prop + wecon + 
+               palermo.ratified + gdp.capita_log + us.aid.pct.gdp + 
+               year.i + cowcode.i, 
+             data = df.crim)
+
+model3 <- lm(protection ~ protection_lag + crim.level_lag + 
+               corruption + polity + female.leg.prop + wecon + 
+               palermo.ratified + gdp.capita_log + us.aid.pct.gdp + 
+               year.i + cowcode.i, 
+             data = df.crim)
+```
+
+Preliminarily it looks like criminalization matters substantially. Moving from 0 to 1 (or 1 to 2) in the preceding year is associated with a 0.25 point increase in the overall 3P index and a 0.1 point increase in the protection index. The effect is positive for prevention, but not significant.
+
+```{r display-crim-effect, results="asis"}
+models <- list(model1, model2, model3)
+
+num.models <- length(models)
+
+var.labs <- c("3P index (t − 1)", "Prevention (t − 1)", 
+              "Protection (t − 1)", "Criminalization (t - 1)",
+              "Control of corruption", "Democracy", 
+              "Women legislators (%)", "Women economic rights",
+              "Palermo Protocol ratified", "GDP per capita (log)", 
+              "US aid (% of GDP)")
+
+col.labs <- sprintf("(%s)", 1:num.models)
+
+extra.lines <- list(c("Model type",
+                      rep("OLS", num.models)),
+                    c("Country fixed effects",
+                      rep("Yes", num.models)),
+                    c("Year fixed effects",
+                      rep("Yes", num.models)))
+
+title <- "Checking for the effect of criminalization"
+
+stargazer(models, 
+          type = "html", omit = c("cow", "Constant", "year"), 
+          add.lines = extra.lines, title = title, covariate.labels = var.labs,
+          keep.stat = c("n", "adj.rsq"),
+          model.numbers = FALSE, column.labels = col.labs, 
+          model.names = FALSE, dep.var.labels.include = TRUE)
+```
