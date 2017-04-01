@@ -10,6 +10,7 @@ knitr::opts_chunk$set(fig.retina = 2,
 
 library(tidyverse)
 library(readxl)
+library(haven)
 library(stringr)
 library(lubridate)
 library(countrycode)
@@ -18,7 +19,7 @@ library(rvest)
 library(DT)
 ```
 
-## Collect data
+## Collect original data
 
 ### 3P Trafficking Index
 
@@ -359,9 +360,44 @@ usaid %>% glimpse()
 ```
 
 
-## Combine data
+## Collect new data
 
-```{r combine-final-data, results="asis"}
+### Criminalization
+
+Data on criminalization comes from Judith Kelley's *Scorecard Diplomacy*. The published data is complete until 2011, but in the book this data was forward-filled to 2014. Here we forward-fill it to 2015 to match other variables. 
+
+**Year range**: Consistent data up to 2011, but forward-filled to 2014/2015
+
+```{r}
+crim <- read_stata("data/Scorecard Diplomacy/criminalization_jk_2015-08-10.dta") %>%
+  select(cowcode = ccode, year, crim.level = adjcrimlevel) %>%
+  mutate(crim.level = ifelse(is.nan(crim.level), 0, crim.level))
+
+crim.panel <- crim %>%
+  # Add new row for 2015 in one country so that expand() adds it for all countries
+  rbind(data_frame(cowcode = 2, year = 2015, crim.level = NA)) %>%
+  expand(cowcode, year) %>%
+  left_join(crim, by = c("cowcode", "year")) %>%
+  group_by(cowcode) %>%
+  # Forward fill
+  fill(crim.level) %>%
+  ungroup() %>%
+  mutate(crim.level.factor = factor(crim.level, levels = 0:2,
+                                    labels = c("No criminalization", 
+                                               "Partial criminalization",
+                                               "Full criminalization"),
+                                    ordered = TRUE)) %>%
+  mutate_at(vars(cowcode, year, crim.level),
+            funs(as.integer))
+
+crim.panel %>% glimpse()
+```
+
+
+## Combine all data
+
+### Original Cho data
+
 ```{r combine-cho-data, results="asis"}
 df.cho <- empty.panel %>%
   left_join(cho.clean, by = c("cowcode", "year")) %>%
@@ -408,5 +444,20 @@ if (nrow(df.cho.full) == nrow(empty.panel)) {
 ```
 
 
-saveRDS(df.cho, "data/df_cho.rds")
+### New data
+
+```{r combine-new-data, results="asis"}
+df.crim <- df.cho.full %>%
+  left_join(crim.panel, by = c("cowcode", "year")) %>%
+  group_by(cowcode) %>%
+  mutate_at(vars(starts_with("crim")),
+            funs(lag = lag(.))) %>%
+  ungroup()
+
+if (nrow(df.crim) == nrow(empty.panel)) {
+  saveRDS(df.crim, "data/df_crim.rds")
+}
+
+df.crim %>% datatable(extensions = "Responsive") %>% 
+  formatRound(select_if(df.crim, is.double) %>% colnames())
 ```
