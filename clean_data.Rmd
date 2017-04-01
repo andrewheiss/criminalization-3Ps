@@ -40,6 +40,8 @@ We ignore these:
 - CUW (Curacao): no cowcode
 - MAC (Macao): no cowcode
 
+**Year range**: Consistent data up to 2015
+
 ```{r load-3p, message=FALSE}
 cho.raw <- read_excel("data/Cho 3Ps/3P_Index_2000-2015.xlsx", skip = 2)
 
@@ -100,6 +102,8 @@ There are more countries in the WGI data than in the 3P data. We ignore these:
 - VIR = Virgin Islands
 - WBG = West Bank and Gaza
 
+**Year range**: Consistent data up to 2015
+
 ```{r load-corruption, message=FALSE, warning=FALSE}
 wgi.raw <- read_csv("data/WGI/WGI_Data.csv")
 
@@ -121,6 +125,8 @@ corruption %>% glimpse()
 
 We use democracy data from [Polity IV](http://www.systemicpeace.org/inscrdata.html).
 
+**Year range**: Consistent data up to 2015
+
 ```{r load-polity, message=FALSE}
 polity.raw <- read_excel("data/Polity/p4v2015.xls")
 
@@ -141,6 +147,8 @@ We use data on the percent of women legislators from the [World Bank's Gender St
 Dozens of countries don't correspond to COW codes here, mostly becuase the data includes observations for regions like the Arab World (ARB) and Fragile and conflict affected situations (FCS). Rather than explicitly define every code to ignore, we just implicitly ignore unmatched codes.
 
 I'm super curious to know what the original authors did with this data, too. 72% is missing!
+
+**Year range**: Super inconsistent data up to 2011, only a few observations in 2012–2014
 
 ```{r load-wb-gender, message=FALSE, warning=FALSE, cache=TRUE}
 gender.raw <- read_csv("data/WB gender stats/Gender_Stat_Data.csv") 
@@ -169,7 +177,9 @@ There are three countries with `cowcode == 345` that cover three different time 
 - Serbia and Montenegro: 1992-1999, 2003-2005
 - Yugoslavia, Federal Republic of: 2000-2002
 
-We collapse them all into one continuous country
+We collapse them all into one continuous country.
+
+**Year range**: Consistent data up to 2011
 
 ```{r load-ciri, message=FALSE}
 ciri.raw <- read_csv("data/CIRI/CIRI Data 1981_2011 2014.04.14.csv",
@@ -196,6 +206,8 @@ wecon %>% glimpse()
 ### International regime membership
 
 We use [data from from the UN's treaty database](https://web.archive.org/web/20160403063433/https://treaties.un.org/Pages/ViewDetails.aspx?src=TREATY&mtdsg_no=XVIII-12-a&chapter=18&lang=en) on Palermo Protocol ratifications.
+
+**Year range**: Consistent data up to 2015
 
 ```{r load-palermo}
 treaty.url <- "https://web.archive.org/web/20160403063433/https://treaties.un.org/Pages/ViewDetails.aspx?src=TREATY&mtdsg_no=XVIII-12-a&chapter=18&lang=en"
@@ -242,6 +254,8 @@ ratifications.panel %>% glimpse()
 
 We use GDP per capita data (constant 2010 USD) from the [World Bank](http://data.worldbank.org/).
 
+**Year range**: Consistent data up to 2015
+
 ```{r load-wdi, cache=TRUE}
 wdi.indicators <- c("NY.GDP.PCAP.KD",  # GDP per capita (constant 2010 USD)
                     "NY.GDP.MKTP.CD",  # GDP (current dollars)
@@ -285,6 +299,7 @@ $$
 
 We include only obligated economic aid.
 
+**Year range**: Consistent data up to 2015
 
 ```{r load-us-aid, message=FALSE, warning=FALSE, cache=TRUE}
 usaid.url <- "https://explorer.usaid.gov/prepared/us_foreign_aid_complete.csv"
