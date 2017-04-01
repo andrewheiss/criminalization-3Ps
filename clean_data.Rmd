@@ -435,8 +435,7 @@ df.cho.full <- df.cho %>%
             funs(lag = lag(.),
                  lag2 = lag(., 2))) %>%
   ungroup() %>%
-  mutate(female.leg.prop = ifelse(is.na(female.leg.prop), 0, female.leg.prop),
-         cowcode.i = as.factor(cowcode), year.i = as.factor(year))
+  mutate(female.leg.prop = ifelse(is.na(female.leg.prop), 0, female.leg.prop))
 
 if (nrow(df.cho.full) == nrow(empty.panel)) {
   saveRDS(df.cho.full, "data/df_cho_full.rds")
