@@ -362,6 +362,7 @@ usaid %>% glimpse()
 ## Combine data
 
 ```{r combine-final-data, results="asis"}
+```{r combine-cho-data, results="asis"}
 df.cho <- empty.panel %>%
   left_join(cho.clean, by = c("cowcode", "year")) %>%
   left_join(corruption, by = c("cowcode", "year")) %>%
@@ -389,6 +390,23 @@ if (nrow(df.cho) == nrow(empty.panel)) {
 
 df.cho %>% datatable(extensions = "Responsive") %>% 
   formatRound(select_if(df.cho, is.double) %>% colnames())
+```
+
+```{r add-model.variables}
+df.cho.full <- df.cho %>%
+  group_by(cowcode) %>%
+  mutate_at(vars(p, prosecution, protection, prevention),
+            funs(lag = lag(.),
+                 lag2 = lag(., 2))) %>%
+  ungroup() %>%
+  mutate(female.leg.prop = ifelse(is.na(female.leg.prop), 0, female.leg.prop),
+         cowcode.i = as.factor(cowcode), year.i = as.factor(year))
+
+if (nrow(df.cho.full) == nrow(empty.panel)) {
+  saveRDS(df.cho.full, "data/df_cho_full.rds")
+}
+```
+
 
 saveRDS(df.cho, "data/df_cho.rds")
 ```
