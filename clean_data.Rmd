@@ -262,11 +262,19 @@ wdi.indicators <- c("NY.GDP.PCAP.KD",  # GDP per capita (constant 2010 USD)
                     "NY.GDP.MKTP.KD",  # GDP (constant 2010 USD)
                     "SP.POP.TOTL")     # Population, total
 
-# Get all countries and regions because the World Bank chokes on ISO codes like
-# XK for Kosovo, even though it returns data for Kosovo with the XK code
-# ¯\_(ツ)_/¯
-wdi.raw <- WDI(country="all", wdi.indicators,
-               extra=FALSE, start=2000, end=2015)
+wdi.path <- file.path("data/WDI/wdi.rds")
+
+if (!file.exists(wdi.path)) {
+  # Get all countries and regions because the World Bank chokes on ISO codes like
+  # XK for Kosovo, even though it returns data for Kosovo with the XK code
+  # ¯\_(ツ)_/¯
+  wdi.raw <- WDI(country="all", wdi.indicators,
+                 extra=FALSE, start=2000, end=2015)
+  
+  saveRDS(wdi.raw, "data/WDI/wdi.rds")
+} else {
+  wdi.raw <- readRDS("data/WDI/wdi.rds")
+}
 
 # Filter countries here instead
 wdi <- wdi.raw %>%
@@ -374,6 +382,10 @@ df.cho <- empty.panel %>%
          gdp.capita_log = log1p(gdp.capita))
 
 testthat::expect_equal(nrow(df.cho), nrow(empty.panel))
+
+if (nrow(df.cho) == nrow(empty.panel)) {
+  saveRDS(df.cho, "data/df_cho.rds")
+}
 
 df.cho %>% datatable(extensions = "Responsive") %>% 
   formatRound(select_if(df.cho, is.double) %>% colnames())
