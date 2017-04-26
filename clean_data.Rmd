@@ -272,9 +272,9 @@ if (!file.exists(wdi.path)) {
   wdi.raw <- WDI(country="all", wdi.indicators,
                  extra=FALSE, start=2000, end=2015)
   
-  saveRDS(wdi.raw, "data/WDI/wdi.rds")
+  saveRDS(wdi.raw, wdi.path)
 } else {
-  wdi.raw <- readRDS("data/WDI/wdi.rds")
+  wdi.raw <- readRDS(wdi.path)
 }
 
 # Filter countries here instead
