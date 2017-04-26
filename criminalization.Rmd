@@ -27,6 +27,7 @@ df.crim <- readRDS("data/df_crim.rds") %>%
 
 TODO: 
 
+- **Remove prosecution from 3P index!**
 - Does criminalization mean just paper compliance or is there something there?
 - Partial vs. full criminalization
 - Figure 6.8 from the book - look at two of the three Ps (not prosecution) as DVs in Cho’s models
