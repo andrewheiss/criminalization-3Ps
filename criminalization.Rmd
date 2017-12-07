@@ -53,6 +53,7 @@ Modeling things:
 - Run as logit because there's not a lot of partials
 - Can we think of another example where there has been external pressure (perhaps from a treaty) to implement reforms, and where we can consider implementing legislation.
 - Is there a way to do mediation analysis? Is criminalization mediating the effects of the palermo protocol or of tier pressure — or a combination?
+- Criminalization might be related to aid from US; US gives more aid if you criminalize
 
 Other issues
 
@@ -62,6 +63,7 @@ Other issues
 - Add case studies?
 - Other ways to add additional evidence (like mediation analysis)
 - Split by how bad criminalization is - marginal changes harder for richer, better countries - split by incidence? (but those are constant numbers)
+- Find which comes first and how often—criminalization or ratification?
 
 It'd be really nice to show that criminalization is a mediating factor between original pressure and outcome
 
