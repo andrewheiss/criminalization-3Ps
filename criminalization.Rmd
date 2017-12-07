@@ -1,6 +1,8 @@
 ---
 title: "Effect of criminalization"
 date: "`r format(Sys.time(), '%F')`"
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -31,13 +33,38 @@ df.crim <- readRDS("data/df_crim.rds") %>%
   mutate(cowcode.i = as.factor(cowcode), year.i = as.factor(year))
 ```
 
-TODO: 
+**Our main questions**: When external actors push for legal reforms, is it just a cheap response? or is there actual change? Does it matter whether domestic pressure changes domestic laws, or is it just paper compliance?
 
-- **Remove prosecution from 3P index!**
-- Does criminalization mean just paper compliance or is there something there?
-- Partial vs. full criminalization
+On p. 161 in *Scorecard Diplomacy* in "Is Criminalization Meaningful or Just Cheap Talk?", we look just at averages. We can get better details than just averages.
+
+
+## TODO
+
+Variables/data to get:
+
+- Presence/absence of action plan
+- Richard Frank's data (<https://humantraffickingindicators.org/>)
+- NGO density
+- Years since criminalization to get cumulative effect
+
+Modeling things:
+
+- Model time since criminalization
+- Run as logit because there's not a lot of partials
+- Can we think of another example where there has been external pressure (perhaps from a treaty) to implement reforms, and where we can consider implementing legislation.
+- Is there a way to do mediation analysis? Is criminalization mediating the effects of the palermo protocol or of tier pressure — or a combination?
+
+Other issues
+
+- Partial vs. full criminalization (OLS gets that; logit doesn't)
 - Figure 6.8 from the book - look at two of the three Ps (not prosecution) as DVs in Cho’s models
 - Also code if countries have an action plan or not - that might matter too - control for US effort (not the TIP score, but other measures of aid, like Wikileaks, USAID, number of trafficking NGOs in the country, etc.)
+- Add case studies?
+- Other ways to add additional evidence (like mediation analysis)
+- Split by how bad criminalization is - marginal changes harder for richer, better countries - split by incidence? (but those are constant numbers)
+
+It'd be really nice to show that criminalization is a mediating factor between original pressure and outcome
+
 
 ## Run models
 
