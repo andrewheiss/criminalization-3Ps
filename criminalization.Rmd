@@ -44,7 +44,7 @@ TODO:
 For now, we just add the degree of criminalization as a continuous variable (0–2) to the original Cho OLS models.
 
 ```{r crim-effect}
-model1 <- lm(p ~ p_lag + crim.level_lag + 
+model1 <- lm(prot_prev ~ prot_prev_lag + crim.level_lag + 
                corruption + polity + female.leg.prop + wecon + 
                palermo.ratified + gdp.capita_log + us.aid.pct.gdp + 
                year.i + cowcode.i, 
@@ -61,21 +61,44 @@ model3 <- lm(protection ~ protection_lag + crim.level_lag +
                palermo.ratified + gdp.capita_log + us.aid.pct.gdp + 
                year.i + cowcode.i, 
              data = df.crim)
+
+model4 <- lm(prot_prev ~ prot_prev_lag2 + crim.level_lag2 + 
+               corruption + polity + female.leg.prop + wecon + 
+               palermo.ratified + gdp.capita_log + us.aid.pct.gdp + 
+               year.i + cowcode.i, 
+             data = df.crim)
+
+model5 <- lm(prevention ~ prevention_lag2 + crim.level_lag2 + 
+               corruption + polity + female.leg.prop + wecon + 
+               palermo.ratified + gdp.capita_log + us.aid.pct.gdp + 
+               year.i + cowcode.i, 
+             data = df.crim)
+
+model6 <- lm(protection ~ protection_lag2 + crim.level_lag2 + 
+               corruption + polity + female.leg.prop + wecon + 
+               palermo.ratified + gdp.capita_log + us.aid.pct.gdp + 
+               year.i + cowcode.i, 
+             data = df.crim)
 ```
 
-Preliminarily it looks like criminalization matters substantially. Moving from 0 to 1 (or 1 to 2) in the preceding year is associated with a 0.25 point increase in the overall 3P index and a 0.1 point increase in the protection index. The effect is positive for prevention, but not significant.
+Preliminarily it looks like criminalization matters substantially. Moving from 0 to 1 (or 1 to 2) in the preceding year is associated with a 0.14 point increase in the protection + prevention indexes and a 0.1 point increase in the protection index. The effect is positive for prevention, but not significant.
 
 ```{r display-crim-effect, results="asis"}
-models <- list(model1, model2, model3)
+models <- list(model1, model2, model3, model4, model5, model6)
 
 num.models <- length(models)
 
-var.labs <- c("3P index (t − 1)", "Prevention (t − 1)", 
-              "Protection (t − 1)", "Criminalization (t - 1)",
+var.labs <- c("Protection + prevention (t − 1)", "Prevention (t − 1)", 
+              "Protection (t − 1)", "**Criminalization (t - 1)**",
+              "Protection + prevention (t − 2)", "Prevention (t − 2)", 
+              "Protection (t − 2)", "**Criminalization (t - 2)**",
               "Control of corruption", "Democracy", 
               "Women legislators (%)", "Women economic rights",
               "Palermo Protocol ratified", "GDP per capita (log)", 
               "US aid (% of GDP)")
+
+dep.var.labels <- c("Protection + Prevention", "Prevention", "Protection",
+                    "Protection + Prevention", "Prevention", "Protection")
 
 col.labs <- sprintf("(%s)", 1:num.models)
 
@@ -91,6 +114,7 @@ title <- "Checking for the effect of criminalization"
 stargazer(models, 
           type = "html", omit = c("cow", "Constant", "year"), 
           add.lines = extra.lines, title = title, covariate.labels = var.labs,
+          dep.var.labels = dep.var.labels, dep.var.caption = "",
           keep.stat = c("n", "adj.rsq"),
           model.numbers = FALSE, column.labels = col.labs, 
           model.names = FALSE, dep.var.labels.include = TRUE)
