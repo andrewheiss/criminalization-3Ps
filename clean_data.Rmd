@@ -1,6 +1,8 @@
 ---
 title: "Data cleaning"
 date: "`r format(Sys.time(), '%F')`"
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r load-libraries, message=FALSE}
@@ -71,7 +73,8 @@ cho.clean <- cho.raw %>%
          prosecution = Prosecution, protection = Protection,
          prevention = Prevention, p = `Overall 3P`) %>%
   mutate_at(vars(year, cowcode, prosecution, protection, prevention, p),
-            funs(as.integer))
+            funs(as.integer)) %>%
+  mutate(prot_prev = protection + prevention)
 
 empty.panel <- cho.clean %>%
   expand(cowcode, year)
@@ -431,7 +434,7 @@ df.cho %>% datatable(extensions = "Responsive") %>%
 ```{r add-model.variables}
 df.cho.full <- df.cho %>%
   group_by(cowcode) %>%
-  mutate_at(vars(p, prosecution, protection, prevention),
+  mutate_at(vars(p, prot_prev, prosecution, protection, prevention),
             funs(lag = lag(.),
                  lag2 = lag(., 2))) %>%
   ungroup() %>%
@@ -450,7 +453,8 @@ df.crim <- df.cho.full %>%
   left_join(crim.panel, by = c("cowcode", "year")) %>%
   group_by(cowcode) %>%
   mutate_at(vars(starts_with("crim")),
-            funs(lag = lag(.))) %>%
+            funs(lag = lag(.),
+                 lag2 = lag(., 2))) %>%
   ungroup()
 
 if (nrow(df.crim) == nrow(empty.panel)) {
