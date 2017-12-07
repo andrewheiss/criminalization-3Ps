@@ -11,7 +11,13 @@ knitr::opts_chunk$set(fig.retina = 2,
 
 ```{r load-libraries, message=FALSE}
 library(tidyverse)
+library(haven)
 library(stargazer)
+library(broom)
+library(purrr)
+library(forcats)
+library(viridisLite)
+library(ggstance)
 
 # By default, R uses polynomial contrasts for ordered factors in linear models
 # options("contrasts") 
@@ -89,3 +95,71 @@ stargazer(models,
           model.numbers = FALSE, column.labels = col.labs, 
           model.names = FALSE, dep.var.labels.include = TRUE)
 ```
+
+
+## Estimating direct effects
+
+### Example using Fearon and Laitin 2003
+
+```{r}
+# Panel-based lags (but tidyverse is way easier than this...)
+pan.lag <- function(x, ind, lag = 1) {
+  unlist(tapply(x,ind, function(x) c(rep(NA, times = lag),x[-((length(x) - lag +1):length(x))])))
+}
+
+# Load and clean data
+fearon <- read_dta("data/repdata.dta")
+fearon_subset <- filter(fearon, onset < 4) %>%
+  mutate(instab2 = 1 * (abs(polity2l - pan.lag(polity2, ccode, 2)) > 3))
+
+# Baseline model
+baseline <- lm(onset ~  lmtnest + ncontig + Oil + ethfrac + relfrac,
+               data = fearon_subset)
+# summary(baseline)
+
+# Baseline model + 
+ptbias <- lm(onset ~  lmtnest + ncontig  + Oil + 
+               ethfrac + relfrac + instab2, 
+             data = fearon_subset)
+# summary(ptbias)
+
+# First stage (to get effect of instability)
+first <- lm(onset ~ warl + gdpenl + lpop + lmtnest +
+              ncontig + Oil + nwstate + instab + polity2l + ethfrac + relfrac,
+            data = fearon_subset)
+# summary(first)
+
+# Second stage (CDE of ethfrac without instability)
+direct <- lm(I(onset - coef(first)["instab"] * instab) ~ lmtnest + ncontig + 
+               Oil + ethfrac + relfrac,
+             data = fearon_subset)
+# summary(direct)
+
+coefs <- tribble(
+  ~model_name, ~model,
+  "Baseline", baseline,
+  "With instability", ptbias,
+  "Fearon and Laitin", first,
+  "ACDE", direct) %>%
+  mutate(tidified = model %>% map(~ tidy(., conf.int = TRUE))) %>%
+  unnest(tidified)
+
+to_plot <- coefs %>%
+  filter(term == "ethfrac") %>%
+  mutate(model_name = fct_rev(fct_inorder(model_name)))
+
+ggplot(to_plot, aes(x = estimate, y = model_name, color = model_name)) +
+  geom_pointrangeh(aes(xmin = conf.low, xmax = conf.high)) +
+  geom_vline(xintercept = 0) +
+  scale_color_viridis_d(option = "magma", end = 0.9, guide = FALSE) +
+  labs(x = "Estimate", y = NULL) +
+  theme_light()
+```
+
+### Our own average controlled direct effect estimation
+
+If we want to do the same ACDE estimation, we have to distinguish between these types of variables:
+
+- Pretreatment confounders
+- Intermediate confounders
+- Posttreatment variables
