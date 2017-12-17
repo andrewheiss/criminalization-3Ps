@@ -48,6 +48,11 @@ Variables/data to get:
 - NGO density
 - Years since criminalization to get cumulative effect
 
+Graphs to make: 
+
+- Time between criminalization and ratification
+- How many signatories/ratifiers have criminalized?
+
 Modeling things:
 
 - Model time since criminalization
