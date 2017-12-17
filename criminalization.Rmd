@@ -7,7 +7,7 @@ editor_options:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(fig.retina = 2,
-                      tidy.opts=list(width.cutoff = 100),  # For code
+                      tidy.opts = list(width.cutoff = 100),  # For code
                       options(width = 100))  # For output
 ```
 
@@ -20,15 +20,16 @@ library(purrr)
 library(forcats)
 library(viridisLite)
 library(ggstance)
+library(here)
 
 # By default, R uses polynomial contrasts for ordered factors in linear models
 # options("contrasts") 
 # So make ordered factors use treatment contrasts instead
-options(contrasts=rep("contr.treatment", 2))
+options(contrasts = rep("contr.treatment", 2))
 ```
 
 ```{r load-data}
-df.crim <- readRDS("data/df_crim.rds") %>%
+df.crim <- readRDS(here("data", "df_crim.rds")) %>%
   filter(year > 2002, year < 2016) %>%
   mutate(cowcode.i = as.factor(cowcode), year.i = as.factor(year))
 ```
@@ -161,7 +162,8 @@ pan.lag <- function(x, ind, lag = 1) {
 }
 
 # Load and clean data
-fearon <- read_dta("data/repdata.dta")
+fearon <- read_dta(here("data", "repdata.dta"))
+
 fearon_subset <- filter(fearon, onset < 4) %>%
   mutate(instab2 = 1 * (abs(polity2l - pan.lag(polity2, ccode, 2)) > 3))
 

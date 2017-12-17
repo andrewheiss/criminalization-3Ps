@@ -1,11 +1,13 @@
 ---
 title: "Replication"
 date: "`r format(Sys.time(), '%F')`"
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(fig.retina = 2,
-                      tidy.opts=list(width.cutoff = 100),  # For code
+                      tidy.opts = list(width.cutoff = 100),  # For code
                       options(width = 100))  # For output
 ```
 
@@ -13,17 +15,18 @@ knitr::opts_chunk$set(fig.retina = 2,
 library(MASS)  # Has to come first because of dplyr::select
 library(tidyverse)
 library(stargazer)
+library(here)
 
 # By default, R uses polynomial contrasts for ordered factors in linear models
 # options("contrasts") 
 # So make ordered factors use treatment contrasts instead
-options(contrasts=rep("contr.treatment", 2))
+options(contrasts = rep("contr.treatment", 2))
 
 source("_functions.R")
 ```
 
 ```{r load-data}
-df.cho <- readRDS("data/df_cho_full.rds") %>%
+df.cho <- readRDS(here("data", "df_cho_full.rds")) %>%
   filter(year > 2002, year < 2010) %>%
   mutate(cowcode.i = as.factor(cowcode), year.i = as.factor(year))
 ```
